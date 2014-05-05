@@ -7,11 +7,16 @@ import (
 	"os"
 )
 
+//A Repo is a directory which contains at least:
+//The directories for migrations and structures,
+//A mongo database with the migrations and structures collections.
+//We store the current mgo session and database in order to perform operations on a Repo.
 type Repo struct {
 	Session *mgo.Session
 	Db      *mgo.Database
 }
 
+//These are the names for the migrations and structures folders/collections.
 var migrateName = "migrations"
 var structureName = "structures"
 
@@ -42,6 +47,9 @@ func NewRepo(hostname string, db string) (*Repo, error) {
 	return r, nil
 }
 
+//Creates a directory in the current directory.
+//Take a name string to determine the name to give the new directory.
+//Returns an error if unsuccessful, nil otherwise.
 func CreateDir(name string) error {
 
 	//Ensure nothing with this name already exists here.
@@ -61,6 +69,8 @@ func CreateDir(name string) error {
 	return nil
 }
 
+//Creates the necessary directories for a new Repo.
+//Returns an error if unsuccessful, or nil otherwise.
 func MakeDirs() error {
 	var err error
 
@@ -77,6 +87,8 @@ func MakeDirs() error {
 	return nil
 }
 
+//Creates the collections for a new Repo.
+//Returns an error if unsuccessful, or nil otherwise.
 func (r *Repo) MakeCollections() error {
 	c := r.Db.C(migrateName)
 	err := c.Create(&mgo.CollectionInfo{})
@@ -95,6 +107,8 @@ func (r *Repo) MakeCollections() error {
 	return nil
 }
 
+//Initializes a new Repo.
+//Returns an error if unsuccessful, or nil otherwise.
 func (r *Repo) Init() error {
 	var err error
 	err = MakeDirs()
