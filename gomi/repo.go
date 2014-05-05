@@ -1,8 +1,10 @@
 package gomi
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"labix.org/v2/mgo"
 	"os"
 )
@@ -126,4 +128,34 @@ func (r *Repo) Init() error {
 	}
 
 	return nil
+}
+
+//GetMigrations loads all migrations.
+//It returns a slice of *Migrations and a nil error if successful,
+//Or nil and an error otherwise.
+func (r *Repo) GetMigrations() ([]*Migration, error) {
+	files, err := ioutil.ReadDir(migrateName)
+	if err != nil {
+		return nil, err
+	}
+
+	m := []*Migration{}
+
+	for _, fn := range files {
+		content, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", migrateName, fn.Name()))
+		if err != nil {
+			return nil, err
+		}
+
+		g := &Migration{}
+
+		err = json.Unmarshal(content, g)
+		if err != nil {
+			return nil, err
+		}
+
+		m = append(m, g)
+	}
+
+	return m, nil
 }
