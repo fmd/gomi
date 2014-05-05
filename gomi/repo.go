@@ -1,12 +1,7 @@
 package gomi
 
 import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"io/ioutil"
 	"labix.org/v2/mgo"
-	"os"
 )
 
 //A Repo is a directory which contains at least:
@@ -18,10 +13,6 @@ type Repo struct {
 	Session  *mgo.Session
 	Db       *mgo.Database
 }
-
-//These are the names for the migrations and structures folders/collections.
-var migrateName = "migrations"
-var structureName = "structures"
 
 //NewSession creates a new Mgo session.
 //BUG(Needs to include other credentials from the Repo session)
@@ -51,46 +42,6 @@ func NewRepo(hostname string, db string) (*Repo, error) {
 	r.Migrator = NewMigrator(r.Db.C(migrateName), r.Db.C(structureName))
 
 	return r, nil
-}
-
-//Creates a directory in the current directory.
-//Take a name string to determine the name to give the new directory.
-//Returns an error if unsuccessful, nil otherwise.
-func CreateDir(name string) error {
-
-	//Ensure nothing with this name already exists here.
-	if _, err := os.Stat(name); err != nil {
-		if !os.IsNotExist(err) {
-			return err
-		}
-	} else {
-		return errors.New(fmt.Sprintf("File named '%s' already exists in this directory.", name))
-	}
-
-	//Create the directory.
-	if err := os.Mkdir(name, 0755); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-//Creates the necessary directories for a new Repo.
-//Returns an error if unsuccessful, or nil otherwise.
-func MakeDirs() error {
-	var err error
-
-	//Make the project directory.
-	if err = CreateDir(migrateName); err != nil {
-		return err
-	}
-
-	//Make the project directory.
-	if err = CreateDir(structureName); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 //Creates the collections for a new Repo.
@@ -123,61 +74,6 @@ func (r *Repo) Init() error {
 	}
 
 	err = r.MakeCollections()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-//GetMigrations loads all migrations.
-//It returns a slice of *Migrations and a nil error if successful,
-//Or nil and an error otherwise.
-func (r *Repo) GetMigrations() ([]*Migration, error) {
-	files, err := ioutil.ReadDir(migrateName)
-	if err != nil {
-		return nil, err
-	}
-
-	m := []*Migration{}
-
-	for _, fn := range files {
-		content, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", migrateName, fn.Name()))
-		if err != nil {
-			return nil, err
-		}
-
-		g := &Migration{}
-
-		err = json.Unmarshal(content, g)
-		if err != nil {
-			return nil, err
-		}
-
-		m = append(m, g)
-	}
-
-	return m, nil
-}
-
-//Saves a new migration based on a structure file.
-//Returns an error if unsuccessful, or nil otherwise.
-func (r *Repo) Structure(name string) error {
-	var err error
-
-	content, err := ioutil.ReadFile(fmt.Sprintf("%s/%s.json", structureName, name))
-	if err != nil {
-		return err
-	}
-
-	s := &Structure{}
-	err = json.Unmarshal(content, s)
-	if err != nil {
-		return err
-	}
-
-	g := r.Migrator.CreateMigration(s)
-	err = g.Save()
 	if err != nil {
 		return err
 	}
