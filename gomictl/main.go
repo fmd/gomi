@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/docopt/docopt-go"
 	"github.com/fmd/gomi/gomi"
 )
@@ -32,25 +33,41 @@ func main() {
 		panic(err)
 	}
 
-	m := r.Migrator
-
 	if args["init"].(bool) {
 		err = r.Init()
 		if err != nil {
 			panic(err)
 		}
+
+		return
+	}
+
+	if args["migrate"].(bool) {
+		migrations, err := gomi.LoadMigrations()
+		for _, migration := range migrations {
+			err = r.Migrator.Apply(migration)
+			if err != nil {
+				fmt.Println(err)
+			}
+		}
+
 		return
 	}
 
 	structure := args["<structure>"].(string)
 	if args["structure"].(bool) {
-		err = m.Structure(structure)
+		s, err := gomi.LoadStructure(structure)
 		if err != nil {
 			panic(err)
 		}
-		return
-	}
-	if args["migrate"].(bool) {
+
+		g := r.Migrator.NewMigration(s)
+		err = g.Save()
+
+		if err != nil {
+			panic(err)
+		}
+
 		return
 	}
 }
