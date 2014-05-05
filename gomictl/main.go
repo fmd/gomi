@@ -33,6 +33,7 @@ func main() {
 		panic(err)
 	}
 
+	//Init function
 	if args["init"].(bool) {
 		err = r.Init()
 		if err != nil {
@@ -42,6 +43,7 @@ func main() {
 		return
 	}
 
+	//Migrate function
 	if args["migrate"].(bool) {
 		migrations, err := gomi.LoadMigrations()
 		for _, migration := range migrations {
@@ -54,6 +56,7 @@ func main() {
 		return
 	}
 
+	//Structure function
 	structure := args["<structure>"].(string)
 	if args["structure"].(bool) {
 		s, err := gomi.LoadStructure(structure)
