@@ -13,6 +13,7 @@ Usage:
     gomictl init <db> [--host=<hostname>]
     gomictl structure <db> <structure> [--host=<hostname>]
     gomictl migrate <db> [--host=<hostname>]
+    gomictl rollback <db> [--host=<hostname>]
     gomictl --help [--host=<hostname>]
     gomictl --version [--host=<hostname>]
 
@@ -51,6 +52,16 @@ func main() {
 			if err != nil {
 				fmt.Println(err)
 			}
+		}
+
+		return
+	}
+
+	//Rollback function
+	if args["rollback"].(bool) {
+		err = m.Migrator.Rollback()
+		if err != nil {
+			panic(err)
 		}
 
 		return
