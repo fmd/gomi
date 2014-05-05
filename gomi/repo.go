@@ -1,8 +1,10 @@
 package gomi
 
 import (
+	"errors"
 	"fmt"
 	"labix.org/v2/mgo"
+	"os"
 )
 
 type Repo struct {
@@ -30,6 +32,7 @@ func NewSession(hostname string) (*mgo.Session, error) {
 //It takes Mongo credentials and a db in string format.
 //It returns a new Repo and a nil error if successful, or nil and an error otherwise.
 func NewRepo(hostname string, db string) (*Repo, error) {
+	var err error
 	r := &Repo{}
 	r.Session, err = NewSession(hostname)
 	if err != nil {
@@ -37,28 +40,20 @@ func NewRepo(hostname string, db string) (*Repo, error) {
 	}
 
 	r.Db = r.Session.DB(db)
+	err = MakeDirs()
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.MakeCollections()
+	if err != nil {
+		return nil, err
+	}
+
 	return r, nil
 }
 
-func MakeCollections() error {
-	c := r.Db.C(migrateName)
-	err := c.Create(&mgo.CollectionInfo{})
-
-	if err != nil {
-		return err
-	}
-
-	c = r.Db.C(structureName)
-	err = c.Create(&mgo.CollectionInfo{})
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func MakeDir(name string) error {
+func CreateDir(name string) error {
 
 	//Ensure nothing with this name already exists here.
 	if _, err := os.Stat(name); err != nil {
@@ -77,16 +72,36 @@ func MakeDir(name string) error {
 	return nil
 }
 
-func MakeDirs() {
+func MakeDirs() error {
 	var err error
 
 	//Make the project directory.
-	if err = Make(migrateName); err != nil {
+	if err = CreateDir(migrateName); err != nil {
 		return err
 	}
 
 	//Make the project directory.
-	if err = Make(structureName); err != nil {
+	if err = CreateDir(structureName); err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (r *Repo) MakeCollections() error {
+	c := r.Db.C(migrateName)
+	err := c.Create(&mgo.CollectionInfo{})
+
+	if err != nil {
+		return err
+	}
+
+	c = r.Db.C(structureName)
+	err = c.Create(&mgo.CollectionInfo{})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
