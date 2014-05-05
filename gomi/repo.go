@@ -87,6 +87,10 @@ func MakeDirs() error {
 	return nil
 }
 
+func (r *Repo) GetMigrator() *Migrator {
+	return NewMigrator(r.Db.C(migrateName), r.Db.C(structureName))
+}
+
 //Creates the collections for a new Repo.
 //Returns an error if unsuccessful, or nil otherwise.
 func (r *Repo) MakeCollections() error {
