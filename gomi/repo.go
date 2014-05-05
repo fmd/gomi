@@ -4,9 +4,9 @@ import (
 	"labix.org/v2/mgo"
 )
 
-//A Repo is a directory which contains at least:
-//The directories for migrations and structures,
-//A mongo database with the migrations and structures collections.
+//A Repo is a directory which contains at least
+//the directories for migrations and structures.
+//It also requires mongo database with the migrations and structures collections.
 //We store the current mgo session and database in order to perform operations on a Repo.
 type Repo struct {
 	Migrator *Migrator

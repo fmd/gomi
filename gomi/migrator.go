@@ -103,39 +103,32 @@ func (m *Migrator) Apply(g *Migration) error {
 //BUG(Again, needs to actually perform data migrations, otherwise it's kind of pointless having this structure.)
 //Returns an error if unsuccessful, or nil otherwise.
 func (m *Migrator) Rollback() error {
-    var err error
+	var err error
 
-    g := &Migration{}
-    err = m.Migrations.Find(nil).Sort("-timestamp").One(&g)
-    if err != nil {
-        return err
-    }
+	//Get the latest migration.
+	g := &Migration{}
+	err = m.Migrations.Find(nil).Sort("-timestamp").One(&g)
+	if err != nil {
+		return err
+	}
 
-    err = m.Migrations.Remove(g)
-    if err != nil {
-        return err
-    }
+	//Remove it.
+	err = m.Migrations.Remove(g)
+	if err != nil {
+		return err
+	}
 
-    err = m.Migrations.Find(nil).Sort("-timestamp").One(&g)
-    if err != nil {
-        s := &Structure{}
-        err = m.Structures.Find("_id":bson.M{g.Structure.Id}).One(&s)
-        if err != nil {
-            return err
-        }
+	//Find the latest migration.
+	err = m.Migrations.Find(nil).Sort("-timestamp").One(&g)
+	if err != nil {
+		return err
+	}
 
-        err = m.Structures.Remove(s)
-        if err != nil {
-            return err
-        }
+	//Apply it.
+	err = m.Apply(g)
+	if err != nil {
+		return err
+	}
 
-        return nil
-    }
-
-    err = m.Apply(g)
-    if err != nil {
-        return err
-    }
-
-    return nil
+	return nil
 }
