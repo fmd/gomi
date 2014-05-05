@@ -38,18 +38,7 @@ func NewRepo(hostname string, db string) (*Repo, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	r.Db = r.Session.DB(db)
-	err = MakeDirs()
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.MakeCollections()
-	if err != nil {
-		return nil, err
-	}
-
 	return r, nil
 }
 
@@ -99,6 +88,21 @@ func (r *Repo) MakeCollections() error {
 	c = r.Db.C(structureName)
 	err = c.Create(&mgo.CollectionInfo{})
 
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *Repo) Init() error {
+	var err error
+	err = MakeDirs()
+	if err != nil {
+		return err
+	}
+
+	err = r.MakeCollections()
 	if err != nil {
 		return err
 	}
