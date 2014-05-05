@@ -13,14 +13,14 @@ import (
 var migrationsDir string = "migrations"
 
 type Structure struct {
-	Id     string      `bson:"_id",    json:"_id"`
-	Schema interface{} `bson:"schema", json:"schema"`
+	Id     string      `bson:"_id"    json:"_id"`
+	Schema interface{} `bson:"schema" json:"schema"`
 }
 
 type Migration struct {
-	Id        string     `bson:"_id", 		json:"_id"`
-	Timestamp int64      `bson:"timestamp", json:"timestamp"`
-	Structure *Structure `bson:"structure", json:"structure"`
+	Id        string     `bson:"_id"       json:"_id"`
+	Timestamp int64      `bson:"timestamp" json:"timestamp"`
+	Structure *Structure `bson:"structure" json:"structure"`
 }
 
 type Migrator struct {
@@ -48,6 +48,8 @@ func (m *Migrator) Structure(name string) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(s)
 
 	g := m.CreateMigration(s)
 	err = g.Save()
