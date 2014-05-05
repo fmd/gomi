@@ -59,7 +59,7 @@ func main() {
 
 	//Rollback function
 	if args["rollback"].(bool) {
-		err = m.Migrator.Rollback()
+		err = r.Migrator.Rollback()
 		if err != nil {
 			panic(err)
 		}
