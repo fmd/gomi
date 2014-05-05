@@ -10,8 +10,6 @@ import (
 	"time"
 )
 
-var migrationsDir string = "migrations"
-
 type Structure struct {
 	Id     string      `bson:"_id"    json:"_id"`
 	Schema interface{} `bson:"schema" json:"schema"`
@@ -130,4 +128,34 @@ func (g *Migration) Save() error {
 	}
 
 	return nil
+}
+
+//AllMigrations loads all migrations.
+//It returns a slice of *Migrations and a nil error if successful,
+//Or nil and an error otherwise.
+func AllMigrations() ([]*Migration, error) {
+	files, err := ioutil.ReadDir(MigrationsDirName)
+	if err != nil {
+		return nil, err
+	}
+
+	m := []*Migration{}
+
+	for _, fn := range files {
+		content, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", MigrationsDirName, fn.Name()))
+		if err != nil {
+			return nil, err
+		}
+
+		s := &Migration{}
+
+		err = json.Unmarshal(content, s)
+		if err != nil {
+			return nil, err
+		}
+
+		m = append(m, s)
+	}
+
+	return m, nil
 }

@@ -35,6 +35,7 @@ func NewSession(hostname string) (*mgo.Session, error) {
 }
 
 //NewRepo creates and returns a *Repo.
+//It does NOT initialize a repo's folders and collections. See (r *Repo) Init().
 //It takes Mongo credentials and a db in string format.
 //It returns a new Repo and a nil error if successful, or nil and an error otherwise.
 func NewRepo(hostname string, db string) (*Repo, error) {
