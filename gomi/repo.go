@@ -12,8 +12,9 @@ import (
 //A mongo database with the migrations and structures collections.
 //We store the current mgo session and database in order to perform operations on a Repo.
 type Repo struct {
-	Session *mgo.Session
-	Db      *mgo.Database
+	Migrator *Migrator
+	Session  *mgo.Session
+	Db       *mgo.Database
 }
 
 //These are the names for the migrations and structures folders/collections.
@@ -44,6 +45,8 @@ func NewRepo(hostname string, db string) (*Repo, error) {
 		return nil, err
 	}
 	r.Db = r.Session.DB(db)
+	r.Migrator = NewMigrator(r.Db.C(migrateName), r.Db.C(structureName))
+
 	return r, nil
 }
 
@@ -85,10 +88,6 @@ func MakeDirs() error {
 	}
 
 	return nil
-}
-
-func (r *Repo) GetMigrator() *Migrator {
-	return NewMigrator(r.Db.C(migrateName), r.Db.C(structureName))
 }
 
 //Creates the collections for a new Repo.

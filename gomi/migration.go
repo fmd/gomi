@@ -28,6 +28,8 @@ type Migrator struct {
 	Structures *mgo.Collection
 }
 
+//Creates a migrator instance based on the two collections the instance needs.
+//Returns a new *Migrator.
 func NewMigrator(migrations *mgo.Collection, structures *mgo.Collection) *Migrator {
 	return &Migrator{
 		Migrations: migrations,
@@ -35,6 +37,8 @@ func NewMigrator(migrations *mgo.Collection, structures *mgo.Collection) *Migrat
 	}
 }
 
+//Saves a new migration based on a structure file.
+//Returns an error if unsuccessful, or nil otherwise.
 func (m *Migrator) Structure(name string) error {
 	var err error
 
@@ -73,6 +77,8 @@ func MigrationIndex() (string, error) {
 	return fmt.Sprintf("%s%s", strings.Repeat("0", 6-len(num)), num), nil
 }
 
+//Creates a migration. Uses a migrator and a structure to create and return a Migration.
+//Returns the newly created migration.
 func (m *Migrator) CreateMigration(s *Structure) *Migration {
 	g := &Migration{}
 	g.Timestamp = time.Now().UTC().UnixNano()
@@ -94,6 +100,8 @@ func (g *Migration) Serialize() ([]byte, error) {
 	return j, nil
 }
 
+//Gets a migration's filename.
+//Returns an empty string and and error if unsucessful, or the filename and nil otherwise.
 func (g *Migration) GetFilename() (string, error) {
 	idx, err := MigrationIndex()
 	if err != nil {
@@ -103,6 +111,8 @@ func (g *Migration) GetFilename() (string, error) {
 	return fmt.Sprintf("%s_%s_%s.json", idx, g.Id, strings.ToLower(g.Structure.Id)), nil
 }
 
+//Saves the migration to a file.
+//Returns an error if unsucessful, or nil otherwise.
 func (g *Migration) Save() error {
 	filename, err := g.GetFilename()
 	if err != nil {

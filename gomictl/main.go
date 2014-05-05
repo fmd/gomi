@@ -32,7 +32,7 @@ func main() {
 		panic(err)
 	}
 
-	m := r.GetMigrator()
+	m := r.Migrator
 
 	if args["init"].(bool) {
 		err = r.Init()
