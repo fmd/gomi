@@ -23,3 +23,7 @@ func NewMigrator(migrations *mgo.Collection, structures *mgo.Collection) *Migrat
 		Structures: structures,
 	}
 }
+
+func (m *Migrator) Structure() {
+
+}
