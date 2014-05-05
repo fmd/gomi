@@ -36,33 +36,6 @@ func NewMigrator(migrations *mgo.Collection, structures *mgo.Collection) *Migrat
 	}
 }
 
-//Saves a new migration based on a structure file.
-//Returns an error if unsuccessful, or nil otherwise.
-func (m *Migrator) Structure(name string) error {
-	var err error
-
-	content, err := ioutil.ReadFile(fmt.Sprintf("%s/%s.json", structureName, name))
-	if err != nil {
-		return err
-	}
-
-	s := &Structure{}
-	err = json.Unmarshal(content, s)
-	if err != nil {
-		return err
-	}
-
-	fmt.Println(s)
-
-	g := m.CreateMigration(s)
-	err = g.Save()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 //MigrationIndex gets the current number of migrations in ./migrations and adds one to the figure.
 //Returns a string padded up to five chars with zeroes and a nil error if successful,
 //or a blank string and an error if unsuccessful.

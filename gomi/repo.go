@@ -159,3 +159,28 @@ func (r *Repo) GetMigrations() ([]*Migration, error) {
 
 	return m, nil
 }
+
+//Saves a new migration based on a structure file.
+//Returns an error if unsuccessful, or nil otherwise.
+func (r *Repo) Structure(name string) error {
+	var err error
+
+	content, err := ioutil.ReadFile(fmt.Sprintf("%s/%s.json", structureName, name))
+	if err != nil {
+		return err
+	}
+
+	s := &Structure{}
+	err = json.Unmarshal(content, s)
+	if err != nil {
+		return err
+	}
+
+	g := r.Migrator.CreateMigration(s)
+	err = g.Save()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
