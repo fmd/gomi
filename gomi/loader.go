@@ -14,7 +14,7 @@ import (
 var migrateName = "migrations"
 var structureName = "structures"
 
-//MigrationIndex gets the current number of migrations in dirname and adds one to the figure.
+//MigrationIndex gets the current number of migrations in the migrations directory, plus one.
 //Returns a string padded up to five chars with zeroes and a nil error if successful,
 //or a blank string and an error if unsuccessful.
 func MigrationIndex() (string, error) {
@@ -46,9 +46,47 @@ func LoadStructure(name string) (*Structure, error) {
 	return s, nil
 }
 
-//func LoadMigration() {
+//ReadMigration attempts to read a migration from a filename into a *Migration.
+//It returns the *Migration and a nil error if successful, or nil and an error otherwise.
+func ReadMigration(filename string) (*Migration, error) {
+	content, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", migrateName, filename))
+	if err != nil {
+		return nil, err
+	}
 
-//}
+	g := &Migration{}
+
+	err = json.Unmarshal(content, g)
+	if err != nil {
+		return nil, err
+	}
+
+	return g, nil
+}
+
+//LoadMigration loads a migraiton from the migration's _id.
+//It returns a *Migration and a nil error if successful, or nil and an error otherwise.
+func LoadMigration(id string) (*Migration, error) {
+	files, err := ioutil.ReadDir(migrateName)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, fn := range files {
+		name := fn.Name()
+		fnId := strings.Split(name, "_")[1]
+		if id == fnId {
+			g, err := ReadMigration(fn.Name())
+			if err != nil {
+				return nil, err
+			}
+
+			return g, nil
+		}
+	}
+
+	return nil, errors.New(fmt.Sprintf("Could not find migration with id: %s", id))
+}
 
 //LoadMigrations loads all migrations.
 //It returns a slice of *Migrations and a nil error if successful,
@@ -62,14 +100,7 @@ func LoadMigrations() ([]*Migration, error) {
 	m := []*Migration{}
 
 	for _, fn := range files {
-		content, err := ioutil.ReadFile(fmt.Sprintf("%s/%s", migrateName, fn.Name()))
-		if err != nil {
-			return nil, err
-		}
-
-		g := &Migration{}
-
-		err = json.Unmarshal(content, g)
+		g, err := ReadMigration(fn.Name())
 		if err != nil {
 			return nil, err
 		}

@@ -23,7 +23,7 @@ func NewMigrator(migrations *mgo.Collection, structures *mgo.Collection) *Migrat
 
 //Creates a migration. Uses a *Migrator and a *Structure to create and return a *Migration.
 //Returns the newly created migration.
-func (m *Migrator) CreateMigration(s *Structure) *Migration {
+func (m *Migrator) NewMigration(s *Structure) *Migration {
 	g := &Migration{}
 	g.Timestamp = time.Now().UTC().UnixNano()
 	g.Id = strconv.FormatInt(g.Timestamp, 16)
@@ -51,15 +51,47 @@ func (m *Migrator) IsApplied(g *Migration) bool {
 	return false
 }
 
+//IsStructured checks whether a structure already exists within Mongo.
+//If uses a *Migrator and a *Structure and returns whether the structure exists.
+func (m *Migrator) HasStructure(s *Structure) bool {
+	t := &Structure{}
+	err := m.Structures.Find(bson.M{"_id": s.Id}).One(&t)
+	if err != nil {
+		return false
+	}
+
+	if len(t.Id) > 0 {
+		return true
+	}
+
+	return false
+}
+
 //Apply applies a migration using a *Migrator from a *Migration.
+//BUG(Needs to actually find a way to determine what changes are actually necessary, etc.)
 //Returns an error if unsuccessful, or nil otherwise.
 func (m *Migrator) Apply(g *Migration) error {
+	var err error
 	a := m.IsApplied(g)
 	if a {
 		return nil
 	}
 
-	err := m.Migrations.Insert(g)
+	if !m.HasStructure(g.Structure) {
+		err = m.Structures.Insert(g.Structure)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	err = m.Structures.Update(bson.M{"_id": g.Structure.Id}, g.Structure)
+	if err != nil {
+		return err
+	}
+
+	err = m.Migrations.Insert(g)
 	if err != nil {
 		return err
 	}
