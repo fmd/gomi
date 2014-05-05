@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/docopt/docopt-go"
 	"github.com/fmd/gomi/gomi"
 )
@@ -25,22 +24,30 @@ Options:
 func main() {
 	args, _ := docopt.Parse(usage(), nil, true, "gomictl v0.1.0", false)
 
-	fmt.Println(args)
-
 	host := args["--host"].(string)
 	db := args["<db>"].(string)
 
+	r, err := gomi.NewRepo(host, db)
+	if err != nil {
+		panic(err)
+	}
+
+	m := r.GetMigrator()
+
 	if args["init"].(bool) {
-		r, err := gomi.NewRepo(host, db)
+		err = r.Init()
 		if err != nil {
 			panic(err)
 		}
-		r.Init()
 		return
 	}
 
-	//structure := args["<structure>"].(string)
+	structure := args["<structure>"].(string)
 	if args["structure"].(bool) {
+		err = m.Structure(structure)
+		if err != nil {
+			panic(err)
+		}
 		return
 	}
 	if args["migrate"].(bool) {
