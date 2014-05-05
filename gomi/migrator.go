@@ -68,7 +68,7 @@ func (m *Migrator) HasStructure(s *Structure) bool {
 }
 
 //Apply applies a migration using a *Migrator from a *Migration.
-//BUG(Needs to actually find a way to determine what changes are actually necessary, etc.)
+//BUG(Needs to actually find a way to determine what changes are actually necessary and then do generate datamigrations, etc.)
 //Returns an error if unsuccessful, or nil otherwise.
 func (m *Migrator) Apply(g *Migration) error {
 	var err error
@@ -97,4 +97,45 @@ func (m *Migrator) Apply(g *Migration) error {
 	}
 
 	return nil
+}
+
+//Rollback uses a *Migrator to roll back to the previous migration.
+//BUG(Again, needs to actually perform data migrations, otherwise it's kind of pointless having this structure.)
+//Returns an error if unsuccessful, or nil otherwise.
+func (m *Migrator) Rollback() error {
+    var err error
+
+    g := &Migration{}
+    err = m.Migrations.Find(nil).Sort("-timestamp").One(&g)
+    if err != nil {
+        return err
+    }
+
+    err = m.Migrations.Remove(g)
+    if err != nil {
+        return err
+    }
+
+    err = m.Migrations.Find(nil).Sort("-timestamp").One(&g)
+    if err != nil {
+        s := &Structure{}
+        err = m.Structures.Find("_id":bson.M{g.Structure.Id}).One(&s)
+        if err != nil {
+            return err
+        }
+
+        err = m.Structures.Remove(s)
+        if err != nil {
+            return err
+        }
+
+        return nil
+    }
+
+    err = m.Apply(g)
+    if err != nil {
+        return err
+    }
+
+    return nil
 }
